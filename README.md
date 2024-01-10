@@ -4,6 +4,7 @@
 
 This plugin is based on [graphdb-intellij-plugin](https://github.com/albertoventurini/graphdb-intellij-plugin), see his [README](README_OLD.md) for more details.
 
+And the idea from [BytecodeDL](https://github.com/BytecodeDL/graphdb-intellij-plugin)
 ## Installation
 
 1. Download latest release.
@@ -17,3 +18,4 @@ This plugin is based on [graphdb-intellij-plugin](https://github.com/albertovent
 1. Use tabby.jar to generate the CPG.
 2. Use tabby-vul-finder.jar to load the CPG on Neo4j.
 3. Use tabby-intellij-plugin to find vulnerabilities easily.
+
