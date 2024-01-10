@@ -8,7 +8,6 @@ package com.albertoventurini.graphdbplugin.visualization.util;
 
 import com.albertoventurini.graphdbplugin.database.api.data.GraphEntity;
 import com.albertoventurini.graphdbplugin.database.api.data.GraphNode;
-import org.apache.commons.text.StringEscapeUtils;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -106,7 +105,7 @@ public class DisplayUtil {
             for(String field:displayFields){
                 if(properties.containsKey(field)){
                     String data = String.valueOf(properties.getOrDefault(field, "null"));
-                    sb.append(String.format(format, field, StringEscapeUtils.escapeHtml4(truncate(data, MAX_TEXT_LENGTH))));
+                    sb.append(String.format(format, field, simpleEscapeHtml(truncate(data, MAX_TEXT_LENGTH))));
                 }
             }
         }
@@ -117,6 +116,36 @@ public class DisplayUtil {
                 "}\n" +
                 "</style>\n" +
                 "</head><body><table>" + sb + "</table></body></html>";
+    }
+
+    private static String simpleEscapeHtml(String content){
+        if(content == null || content.isEmpty()) return content;
+
+        StringBuilder encoded = new StringBuilder();
+        for (char c : content.toCharArray()) {
+            switch (c) {
+                case '<':
+                    encoded.append("&lt;");
+                    break;
+                case '>':
+                    encoded.append("&gt;");
+                    break;
+                case '&':
+                    encoded.append("&amp;");
+                    break;
+                case '\"':
+                    encoded.append("&quot;");
+                    break;
+                case '\'':
+                    encoded.append("&#x27;");
+                    break;
+                default:
+                    encoded.append(c);
+                    break;
+            }
+        }
+
+        return encoded.toString();
     }
 
     private static String truncate(String text, int length) {

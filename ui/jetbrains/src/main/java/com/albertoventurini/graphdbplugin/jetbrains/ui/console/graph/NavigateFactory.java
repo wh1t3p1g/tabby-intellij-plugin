@@ -46,15 +46,23 @@ public class NavigateFactory {
 
     public static PsiCallExpression getFirstCallExpression(PsiMethod startMethod, GraphNode endNode){
         String calleeName = (String) endNode.getPropertyContainer().getProperties().get("NAME");
+        String classname = (String) endNode.getPropertyContainer().getProperties().get("CLASSNAME");
         if(startMethod != null && calleeName != null){
-            calleeName = calleeName+"(";
-            UsageInfo usage = new UsageInfo(startMethod);
-            PsiMethod psiMethod = PsiTreeUtil.getParentOfType(usage.getFile().findElementAt(usage.getSegment().getEndOffset()), PsiMethod.class);
-            Collection<PsiCallExpression> callExpressions = PsiTreeUtil.collectElementsOfType(psiMethod, PsiCallExpression.class);
-            for(PsiCallExpression callExpression:callExpressions){
-                if(callExpression.toString().contains(calleeName)){
-                    return callExpression;
-                }
+            if(calleeName.equals("<init>")){
+                calleeName = classname.substring(classname.lastIndexOf(".")+1);
+            }
+            return getFirstCallExpression(startMethod, calleeName+"(");
+        }
+        return null;
+    }
+
+    private static PsiCallExpression getFirstCallExpression(PsiMethod startMethod, String identity) {
+        UsageInfo usage = new UsageInfo(startMethod);
+        PsiMethod psiMethod = PsiTreeUtil.getParentOfType(usage.getFile().findElementAt(usage.getSegment().getEndOffset()), PsiMethod.class);
+        Collection<PsiCallExpression> callExpressions = PsiTreeUtil.collectElementsOfType(psiMethod, PsiCallExpression.class);
+        for(PsiCallExpression callExpression:callExpressions){
+            if(callExpression.toString().contains(identity)){
+                return callExpression;
             }
         }
         return null;
