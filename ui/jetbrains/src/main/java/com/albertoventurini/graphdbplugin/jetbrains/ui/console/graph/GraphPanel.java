@@ -6,14 +6,31 @@
  */
 package com.albertoventurini.graphdbplugin.jetbrains.ui.console.graph;
 
+import com.albertoventurini.graphdbplugin.database.api.data.GraphEntity;
+import com.albertoventurini.graphdbplugin.database.api.data.GraphNode;
+import com.albertoventurini.graphdbplugin.database.api.data.GraphRelationship;
+import com.albertoventurini.graphdbplugin.database.api.query.GraphQueryResult;
 import com.albertoventurini.graphdbplugin.jetbrains.actions.execute.ExecuteQueryPayload;
 import com.albertoventurini.graphdbplugin.jetbrains.component.datasource.state.DataSourceApi;
+import com.albertoventurini.graphdbplugin.jetbrains.ui.console.GraphConsoleView;
+import com.albertoventurini.graphdbplugin.jetbrains.ui.console.event.PluginSettingsUpdated;
+import com.albertoventurini.graphdbplugin.jetbrains.ui.console.event.QueryExecutionProcessEvent;
 import com.albertoventurini.graphdbplugin.jetbrains.ui.datasource.tree.TreeMouseAdapter;
 import com.albertoventurini.graphdbplugin.jetbrains.ui.helpers.UiHelper;
 import com.albertoventurini.graphdbplugin.jetbrains.ui.renderes.tree.PropertyTreeCellRenderer;
+import com.albertoventurini.graphdbplugin.platform.GraphConstants.ToolWindow.Tabs;
+import com.albertoventurini.graphdbplugin.visualization.PrefuseVisualization;
+import com.albertoventurini.graphdbplugin.visualization.services.LookAndFeelService;
+import com.github.weisj.jsvg.O;
+import com.intellij.ide.SelectInEditorManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.BalloonBuilder;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.*;
+import com.intellij.psi.search.FilenameIndex;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBLabel;
@@ -22,17 +39,8 @@ import com.intellij.ui.components.labels.LinkListener;
 import com.intellij.ui.popup.BalloonPopupBuilderImpl;
 import com.intellij.ui.treeStructure.PatchedDefaultMutableTreeNode;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.usageView.UsageInfo;
 import com.intellij.util.messages.MessageBus;
-import com.albertoventurini.graphdbplugin.database.api.data.GraphEntity;
-import com.albertoventurini.graphdbplugin.database.api.data.GraphNode;
-import com.albertoventurini.graphdbplugin.database.api.data.GraphRelationship;
-import com.albertoventurini.graphdbplugin.database.api.query.GraphQueryResult;
-import com.albertoventurini.graphdbplugin.jetbrains.ui.console.GraphConsoleView;
-import com.albertoventurini.graphdbplugin.jetbrains.ui.console.event.QueryExecutionProcessEvent;
-import com.albertoventurini.graphdbplugin.jetbrains.ui.console.event.PluginSettingsUpdated;
-import com.albertoventurini.graphdbplugin.platform.GraphConstants.ToolWindow.Tabs;
-import com.albertoventurini.graphdbplugin.visualization.PrefuseVisualization;
-import com.albertoventurini.graphdbplugin.visualization.services.LookAndFeelService;
 import org.jetbrains.annotations.NotNull;
 import prefuse.visual.VisualItem;
 
@@ -40,10 +48,13 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.util.Collection;
 import java.util.Enumeration;
+import java.util.List;
 
-import static com.albertoventurini.graphdbplugin.jetbrains.ui.console.event.OpenTabEvent.*;
-import static com.albertoventurini.graphdbplugin.visualization.util.DisplayUtil.*;
+import static com.albertoventurini.graphdbplugin.jetbrains.ui.console.event.OpenTabEvent.OPEN_TAB_TOPIC;
+import static com.albertoventurini.graphdbplugin.visualization.util.DisplayUtil.getTooltipText;
+import static com.albertoventurini.graphdbplugin.visualization.util.DisplayUtil.getTooltipTitle;
 
 public class GraphPanel {
 
@@ -56,6 +67,7 @@ public class GraphPanel {
     private Tree entityDetailsTree;
     private DefaultTreeModel entityDetailsTreeModel;
     private DataSourceApi dataSource;
+    private Project project;
 
     public GraphPanel() {
         entityDetailsTreeModel = new DefaultTreeModel(null);
@@ -118,6 +130,106 @@ public class GraphPanel {
                 graphConsoleView,
                 messageBus,
                 visualization);
+    }
+
+    public void navigateToMethod(GraphNode node, VisualItem item, MouseEvent e){
+        boolean isDoubleClick = e.getClickCount() == 2;
+        List<String> types = node.getTypes();
+        if(isDoubleClick && this.project != null && types.contains("Method")){
+            String classname = (String) node.getPropertyContainer().getProperties().get("CLASSNAME");
+            if(classname.endsWith("_jsp")){
+                navigateToFile(node, item, e);
+            }else{
+                PsiMethod method = NavigateFactory.getMethod(this.project, node);
+                if(method != null){
+                    PsiIdentifier psiIdentifier = method.getNameIdentifier();
+                    if(psiIdentifier != null){
+                        UsageInfo usage = new UsageInfo(psiIdentifier);
+                        try{
+                            SelectInEditorManager.getInstance(this.project)
+                                    .selectInEditor(usage.getVirtualFile(),
+                                            usage.getSegment().getStartOffset(),
+                                            usage.getSegment().getEndOffset(), true, false);
+                        }catch (Exception ee){
+                            ee.printStackTrace();
+                        }
+
+                    }
+                }
+            }
+        }
+    }
+
+    public void navigateToFile(GraphNode node, VisualItem item, MouseEvent e){
+        boolean isDoubleClick = e.getClickCount() == 2;
+        List<String> types = node.getTypes();
+        if(isDoubleClick && this.project != null){
+
+            String classname = null;
+            if(types.contains("Class")){
+                classname = (String) node.getPropertyContainer().getProperties().get("NAME");
+            }else if(types.contains("Method")){
+                classname = (String) node.getPropertyContainer().getProperties().get("CLASSNAME");
+            }
+
+            if(classname != null){
+                if(classname.endsWith("_jsp")){ // jump to jsp files
+                    String filename = classname.substring(classname.lastIndexOf(".")+1).replace("_jsp", ".jsp");
+                    Collection<VirtualFile> virtualFiles = FilenameIndex.getVirtualFilesByName(filename, GlobalSearchScope.allScope(project));
+                    String filepath  = classname.replace(".", "/").replace("_jsp", ".jsp");
+                    for(VirtualFile virtualFile:virtualFiles){
+                        if(virtualFile != null && virtualFile.getCanonicalPath().endsWith(filepath)){
+                            OpenFileDescriptor descriptor = new OpenFileDescriptor(project, virtualFile);
+                            if(descriptor.canNavigate()){
+                                descriptor.navigate(true);
+                                break;
+                            }
+                        }
+                    }
+                }else{
+                    JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
+                    PsiClass psiClass = facade.findClass(classname, GlobalSearchScope.allScope(project));
+                    if(psiClass != null && psiClass.canNavigate()){
+                        psiClass.navigate(true);
+                    }
+                }
+            }
+        }
+    }
+
+    public void navigateToInvocation(GraphRelationship relationship, VisualItem item, MouseEvent e){
+        boolean isDoubleClick = e.getClickCount() == 2;
+        List<String> types = relationship.getTypes();
+        if(isDoubleClick && this.project != null && types.contains("CALL")){
+            String invokerType = (String) relationship.getPropertyContainer().getProperties().get("INVOKER_TYPE");
+            GraphNode startNode = relationship.getStartNode();
+            GraphNode endNode = relationship.getEndNode();
+            if("ManualInvoke".equals(invokerType)){
+                navigateToMethod(startNode, item, e);
+            }else{
+                try{
+                    String classname = (String) startNode.getPropertyContainer().getProperties().get("CLASSNAME");
+                    if(classname.endsWith("_jsp")){
+                        navigateToFile(startNode, item, e);
+                    }else{
+                        PsiMethod startMethod = NavigateFactory.getMethod(project, startNode);
+                        PsiCallExpression callExpression = NavigateFactory.getFirstCallExpression(startMethod, endNode);
+                        if(callExpression != null){
+                            VirtualFile virtualFile = startMethod.getContainingFile().getVirtualFile();
+                            UsageInfo usage = new UsageInfo(callExpression);
+                            SelectInEditorManager.getInstance(this.project)
+                                    .selectInEditor(virtualFile, usage.getSegment().getStartOffset(), usage.getSegment().getEndOffset(), true, false);
+                        }
+                    }
+                }catch (Exception ee){
+                    ee.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
     }
 
     public void showNodeData(GraphNode node, VisualItem item, MouseEvent e) {

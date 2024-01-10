@@ -11,7 +11,7 @@ public final class GraphConstants {
     public static final boolean IS_DEVELOPMENT = System.getProperty("graphDatabaseSupportDevelopment") != null;
 
     public static final String BOUND_DATA_SOURCE_PREFIX = "graphdbBoundDataSource-";
-    public static final String PLUGIN_ID = "com.albertoventurini.jetbrains.graphdbplugin";
+    public static final String PLUGIN_ID = "tabby.graphdbplugin";
 
     public static class ToolWindow {
         public static final String CONSOLE_TOOL_WINDOW = "Graph Database Console";

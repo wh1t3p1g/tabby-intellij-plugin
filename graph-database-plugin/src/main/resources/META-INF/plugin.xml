@@ -1,13 +1,13 @@
 <idea-plugin>
-    <id>com.albertoventurini.jetbrains.graphdbplugin</id>
-    <name>Graph Database</name>
+    <id>tabby.graphdbplugin</id>
+    <name>Tabby Plugin</name>
     <!-- Version is automatically replaced by the patchPluginXml task -->
-    <version>9.9.9</version>
-    <vendor email="aventurini@gmail.com" url="https://github.com/albertoventurini/graphdb-intellij-plugin">Alberto Venturini</vendor>
+    <version>0.0.1</version>
+    <vendor email="wh1t3p1g@gmail.com" url="https://github.com/wh1t3p1g/tabby-intellij-plugin">wh1t3p1g</vendor>
 
     <description><![CDATA[
         <p>
-            See this plugin <a href="https://github.com/albertoventurini/graphdb-intellij-plugin">on Github</a>.
+            See this plugin <a href="https://github.com/wh1t3p1g/tabby-intellij-plugin">on Github</a>.
         </p>
         <p>
             This plugin provides useful features for working with graph databases.
@@ -70,7 +70,7 @@
     <!-- Change notes are automatically replaced by the patchPluginXml task -->
     <change-notes><![CDATA[
         See
-        <a href="https://github.com/albertoventurini/graphdb-intellij-plugin/releases">https://github.com/albertoventurini/graphdb-intellij-plugin/releases</a>
+        <a href="https://github.com/wh1t3p1g/tabby-intellij-plugin/releases">https://github.com/wh1t3p1g/tabby-intellij-plugin/releases</a>
         ]]></change-notes>
 
     <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
@@ -138,7 +138,7 @@
         <applicationConfigurable groupId="tools"
                                  instance="com.albertoventurini.graphdbplugin.jetbrains.configuration.GraphDatabaseConfiguration"/>
         <!-- Update notification -->
-        <postStartupActivity implementation="com.albertoventurini.graphdbplugin.jetbrains.component.updater.PluginUpdateActivity" />
+<!--        <postStartupActivity implementation="com.albertoventurini.graphdbplugin.jetbrains.component.updater.PluginUpdateActivity" />-->
         <!-- Cypher -->
         <fileType
                 name="Cypher"

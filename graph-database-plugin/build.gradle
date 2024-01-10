@@ -56,7 +56,7 @@ changelog {
     header = "[${-> version.get()}] - ${new SimpleDateFormat("yyyy-MM-dd").format(new Date())}"
     headerParserRegex = ~/(\d+\.\d+\.\d+[\-\w]*)/
     keepUnreleasedSection = true
-    repositoryUrl = "https://github.com/albertoventurini/graphdb-intellij-plugin"
+    repositoryUrl = "https://github.com/wh1t3p1g/tabby-intellij-plugin"
 }
 
 runIde {

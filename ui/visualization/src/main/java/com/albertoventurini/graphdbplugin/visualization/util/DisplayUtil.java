@@ -8,12 +8,10 @@ package com.albertoventurini.graphdbplugin.visualization.util;
 
 import com.albertoventurini.graphdbplugin.database.api.data.GraphEntity;
 import com.albertoventurini.graphdbplugin.database.api.data.GraphNode;
+import org.apache.commons.text.StringEscapeUtils;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.unmodifiableList;
@@ -23,9 +21,9 @@ public class DisplayUtil {
     private static final int MAX_TOOLTIP_PROPERTIES = 3;
     private static final int LABEL_TEXT_WIDTH = 300;
     private static final int MAX_TITLE_LENGTH = 40;
-    private static final int MAX_TEXT_LENGTH = 60;
+    private static final int MAX_TEXT_LENGTH = 100;
 
-    private static final List<String> TITLE_INDICATORS = unmodifiableList(newArrayList("name", "title"));
+    private static final List<String> TITLE_INDICATORS = unmodifiableList(newArrayList("name", "title", "NAME"));
     private static final Predicate<Map.Entry<String, Object>> IS_STRING_VALUE = o -> String.class.isAssignableFrom(o.getValue().getClass());
 
     public static String getProperty(GraphNode node) {
@@ -67,41 +65,58 @@ public class DisplayUtil {
     }
 
     public static String getTooltipTitle(GraphEntity entity) {
+        List<String> types = entity.getTypes();
+        if(types != null){
+            if(types.contains("Class")){
+                return "[Class] " + entity.getPropertyContainer().getProperties().getOrDefault("NAME", "Null");
+            }else if(types.contains("Method")){
+                return "[Method] " + entity.getPropertyContainer().getProperties().getOrDefault("NAME", "Null");
+            }else if(types.contains("HAS")){
+                return "[Has]";
+            }else if(types.contains("INTERFACES")){
+                return "[INTERFACES]";
+            }else if(types.contains("EXTENDS")){
+                return "[EXTENDS]";
+            }else if(types.contains("CALL")){
+                return "[CALL]";
+            }else if(types.contains("ALIAS")){
+                return "[ALIAS]";
+            }
+        }
         return entity.getId() + ": " + entity.getTypes();
     }
 
     public static String getTooltipText(GraphEntity entity) {
         Map<String, Object> properties = entity.getPropertyContainer().getProperties();
-        String start = "<p width=\"" + LABEL_TEXT_WIDTH + "px\"><b>";
+        String format = "<tr><th>%s</th><td>%s</td></tr>";
 
-        String typesRepresentation = entity.isTypesSingle() ? entity.getTypes().get(0) : entity.getTypes().toString();
-        StringBuilder sb = new StringBuilder(start)
-                .append(entity.getTypesName())
-                .append("</b>: ")
-                .append(typesRepresentation)
-                .append("</p>");
+        StringBuilder sb = new StringBuilder();
 
-        Stream<Map.Entry<String, Object>> strings = properties.entrySet().stream()
-                .filter(IS_STRING_VALUE)
-                .limit(MAX_TOOLTIP_PROPERTIES);
-        Stream<Map.Entry<String, Object>> other = properties.entrySet().stream()
-                .filter(IS_STRING_VALUE.negate())
-                .limit(MAX_TOOLTIP_PROPERTIES);
+        List<String> types = entity.getTypes();
+        if(types != null){
+            List<String> displayFields = new ArrayList<>();
+            if(types.contains("Class")){
+                displayFields = Arrays.asList("NAME", "IS_SERIALIZABLE");
+            }else if(types.contains("Method")){
+                displayFields = Arrays.asList("CLASSNAME", "NAME", "SIGNATURE");
+            }else if(types.contains("CALL")){
+                displayFields = Arrays.asList("POLLUTED_POSITION","LINE_NUM");
+            }
 
-        Stream.concat(strings, other)
-                .limit(MAX_TOOLTIP_PROPERTIES)
-                .forEach(entry -> sb.append(start)
-                        .append(entry.getKey())
-                        .append("</b>: ")
-                        .append(truncate(entry.getValue().toString(), MAX_TEXT_LENGTH))
-                        .append("</p>")
-                );
-
-        if (properties.size() > MAX_TOOLTIP_PROPERTIES) {
-            sb.append("<p>...</p>");
+            for(String field:displayFields){
+                if(properties.containsKey(field)){
+                    String data = String.valueOf(properties.getOrDefault(field, "null"));
+                    sb.append(String.format(format, field, StringEscapeUtils.escapeHtml4(truncate(data, MAX_TEXT_LENGTH))));
+                }
+            }
         }
 
-        return "<html>" + sb.toString() + "</html>";
+        return "<html><head><style>\n" +
+                "th, td {\n" +
+                "  border-style: solid;\n" +
+                "}\n" +
+                "</style>\n" +
+                "</head><body><table>" + sb + "</table></body></html>";
     }
 
     private static String truncate(String text, int length) {
