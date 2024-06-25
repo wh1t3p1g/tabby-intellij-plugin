@@ -20,26 +20,37 @@ import java.util.List;
 public class CopyValueToClipboardAction extends AnAction {
 
     private GraphNode node;
-    public CopyValueToClipboardAction(String title, String description, Icon icon, GraphNode object) {
+    private String key;
+    public CopyValueToClipboardAction(String title, String description, Icon icon, GraphNode object, String key) {
         super(title, description, icon);
         this.node = object;
+        this.key = key;
     }
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent anActionEvent) {
         List<String> types = node.getTypes();
+        boolean isMethodNode = types.contains("Method");
         String data = null;
 
-        if(types != null){
-            if(types.contains("Method")){
-                data = (String) node.getPropertyContainer().getProperties().get("NAME0");
-            }else if(types.contains("Class")){
-                data = (String) node.getPropertyContainer().getProperties().get("NAME");
-            }
-        }
-
-        if(data == null){
-            data = SerialisationHelper.convertToCsv(node);
+        switch (key){
+            case "CLASSNAME":
+                data = isMethodNode ?
+                        (String) node.getPropertyContainer().getProperties().get("CLASSNAME"):
+                        (String) node.getPropertyContainer().getProperties().get("NAME");
+                break;
+            case "METHOD":
+                data = isMethodNode ?
+                        (String) node.getPropertyContainer().getProperties().get("NAME"):
+                        "";
+                break;
+            case "NAME":
+                data = isMethodNode ?
+                        (String) node.getPropertyContainer().getProperties().get("NAME0"):
+                        (String) node.getPropertyContainer().getProperties().get("NAME");
+                break;
+            default:
+                data = SerialisationHelper.convertToCsv(node);
         }
 
         StringSelection selection = new StringSelection(data);

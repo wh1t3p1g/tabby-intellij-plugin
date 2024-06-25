@@ -6,17 +6,16 @@
  */
 package com.albertoventurini.graphdbplugin.jetbrains.database;
 
-import com.albertoventurini.graphdbplugin.jetbrains.component.datasource.state.DataSourceApi;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.util.messages.MessageBus;
 import com.albertoventurini.graphdbplugin.database.api.GraphDatabaseApi;
 import com.albertoventurini.graphdbplugin.database.api.query.GraphQueryResult;
 import com.albertoventurini.graphdbplugin.jetbrains.actions.execute.ExecuteQueryPayload;
+import com.albertoventurini.graphdbplugin.jetbrains.component.datasource.state.DataSourceApi;
 import com.albertoventurini.graphdbplugin.jetbrains.ui.console.event.QueryExecutionProcessEvent;
 import com.albertoventurini.graphdbplugin.jetbrains.ui.console.event.QueryPlanEvent;
 import com.albertoventurini.graphdbplugin.jetbrains.util.Notifier;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.util.messages.MessageBus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.Future;
@@ -41,7 +40,11 @@ public class QueryExecutionService {
         try {
             executeInBackground(dataSource, payload);
         } catch (Exception e) {
-            Notifier.error("Query execution", "Error during execution: " + e.toString());
+            if(runningQuery != null && runningQuery.isCancelled()){
+                Notifier.info("Query execution", "Cancel success!");
+            }else{
+                Notifier.error("Query execution", "Error during execution: " + e.toString());
+            }
         }
     }
 
@@ -54,6 +57,27 @@ public class QueryExecutionService {
             runningQuery = null;
         } else {
             runningQuery.cancel(true);
+        }
+    }
+
+    public synchronized void cancelQuery() {
+        if (runningQuery == null) {
+            Notifier.info("Cancel Query", "Nothing to cancel!");
+            return;
+        }
+
+        if (runningQuery.isDone()) {
+            runningQuery = null;
+            Notifier.info("Cancel Query", "Nothing to cancel!");
+        } else {
+            try{
+                runningQuery.cancel(true);
+            }catch (Exception e){
+                if(runningQuery.isCancelled()){
+                    Notifier.info("Cancel Query", "Success!");
+                }
+            }
+
         }
     }
 
@@ -95,8 +119,14 @@ public class QueryExecutionService {
                 });
             } catch (Exception e) {
                 ApplicationManager.getApplication().invokeLater(() -> {
-                    event.handleError(payload, e);
-                    event.executionCompleted(payload);
+                    if(runningQuery != null && runningQuery.isCancelled()){
+                        Notifier.info("Cancel Query", "Query canceled.");
+                        runningQuery = null;
+                        event.executionCompleted(payload);
+                    }else{
+                        event.handleError(payload, e);
+                        event.executionCompleted(payload);
+                    }
                 });
             }
         };

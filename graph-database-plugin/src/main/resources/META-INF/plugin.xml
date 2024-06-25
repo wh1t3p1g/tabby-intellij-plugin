@@ -227,6 +227,12 @@
                     icon="AllIcons.Toolwindows.ToolWindowRun"
                     description="Execute query">
             </action>
+            <action id="GraphDatabaseConsoleToolWindowActions.CancelQuery"
+                    class="com.albertoventurini.graphdbplugin.jetbrains.actions.execute.CancelQueryAction"
+                    text="Cancel Query"
+                    icon="AllIcons.Actions.Suspend"
+                    description="Cancel query">
+            </action>
             <action id="GraphDatabaseConsoleToolWindowActions.CleanCanvas"
                     class="com.albertoventurini.graphdbplugin.jetbrains.actions.ui.console.CleanCanvasAction"
                     text="Clean Canvas"

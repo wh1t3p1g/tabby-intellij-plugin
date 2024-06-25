@@ -21,12 +21,15 @@ import com.albertoventurini.graphdbplugin.jetbrains.ui.renderes.tree.PropertyTre
 import com.albertoventurini.graphdbplugin.platform.GraphConstants.ToolWindow.Tabs;
 import com.albertoventurini.graphdbplugin.visualization.PrefuseVisualization;
 import com.albertoventurini.graphdbplugin.visualization.services.LookAndFeelService;
-import com.github.weisj.jsvg.O;
+import com.intellij.ide.DataManager;
 import com.intellij.ide.SelectInEditorManager;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.BalloonBuilder;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.ui.popup.ListPopup;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.FilenameIndex;
@@ -44,6 +47,7 @@ import com.intellij.util.messages.MessageBus;
 import org.jetbrains.annotations.NotNull;
 import prefuse.visual.VisualItem;
 
+import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
@@ -130,6 +134,36 @@ public class GraphPanel {
                 graphConsoleView,
                 messageBus,
                 visualization);
+    }
+
+    public void nodeAction(GraphNode node, VisualItem item, MouseEvent e){
+        if(e.getButton() == MouseEvent.BUTTON3){ // 右键
+            DataContext dataContext = DataManager.getInstance().getDataContext(e.getComponent());
+            ListPopup popup = JBPopupFactory.getInstance().createActionGroupPopup(
+                    node.getRepresentation(),
+                    new EntityActionGroup(dataSource, node),
+                    dataContext,
+                    JBPopupFactory.ActionSelectionAid.SPEEDSEARCH,
+                    true
+            );
+
+            popup.showInBestPositionFor(dataContext);
+        }
+    }
+
+    public void edgeAction(GraphRelationship relationship, VisualItem item, MouseEvent e){
+        if(e.getButton() == MouseEvent.BUTTON3){ // 右键
+            DataContext dataContext = DataManager.getInstance().getDataContext(e.getComponent());
+            ListPopup popup = JBPopupFactory.getInstance().createActionGroupPopup(
+                    relationship.getRepresentation(),
+                    new EntityActionGroup(dataSource, relationship),
+                    dataContext,
+                    JBPopupFactory.ActionSelectionAid.SPEEDSEARCH,
+                    true
+            );
+
+            popup.showInBestPositionFor(dataContext);
+        }
     }
 
     public void navigateToMethod(GraphNode node, VisualItem item, MouseEvent e){

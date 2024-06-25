@@ -6,19 +6,17 @@
  */
 package com.albertoventurini.graphdbplugin.visualization.settings;
 
-import com.albertoventurini.graphdbplugin.visualization.services.LookAndFeelService;
 import com.albertoventurini.graphdbplugin.visualization.GraphDisplay;
 import com.albertoventurini.graphdbplugin.visualization.layouts.CenteredLayout;
-import com.albertoventurini.graphdbplugin.visualization.layouts.DynamicForceLayout;
 import com.albertoventurini.graphdbplugin.visualization.layouts.RepaintAndRepositionAction;
+import com.albertoventurini.graphdbplugin.visualization.services.LookAndFeelService;
 import prefuse.Visualization;
 import prefuse.action.ActionList;
 import prefuse.action.RepaintAction;
+import prefuse.action.layout.graph.NodeLinkTreeLayout;
 import prefuse.activity.Activity;
 
-import static com.albertoventurini.graphdbplugin.visualization.constants.GraphGroups.EDGE_LABEL;
-import static com.albertoventurini.graphdbplugin.visualization.constants.GraphGroups.GRAPH;
-import static com.albertoventurini.graphdbplugin.visualization.constants.GraphGroups.NODE_LABEL;
+import static com.albertoventurini.graphdbplugin.visualization.constants.GraphGroups.*;
 
 public class LayoutProvider {
 
@@ -27,7 +25,8 @@ public class LayoutProvider {
     public static ActionList forceLayout(Visualization viz, GraphDisplay display, LookAndFeelService lookAndFeel) {
         ActionList actions = new ActionList(viz);
 
-        actions.add(new DynamicForceLayout(GRAPH, ENFORCE_BOUNDS));
+//        actions.add(new DynamicForceLayout(GRAPH, ENFORCE_BOUNDS));
+        actions.add(new NodeLinkTreeLayout(GRAPH));
         actions.add(ColorProvider.colors(lookAndFeel));
         actions.add(new RepaintAndRepositionAction(viz, display));
 

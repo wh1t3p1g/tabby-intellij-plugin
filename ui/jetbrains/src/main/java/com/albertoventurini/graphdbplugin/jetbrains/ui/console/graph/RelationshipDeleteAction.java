@@ -35,8 +35,8 @@ public class RelationshipDeleteAction extends AnAction {
         if (project != null) {
             QueryExecutionService service = new QueryExecutionService(project, project.getMessageBus());
 
-            service.executeQuery(dataSource, new ExecuteQueryPayload("MATCH ()-[n]->() WHERE ID(n) = $id DELETE n",
-                    ImmutableMap.of("id", Long.parseLong(relationship.getId())),
+            service.executeQuery(dataSource, new ExecuteQueryPayload("MATCH ()-[n]->() WHERE elementId(n) = $id DELETE n",
+                    ImmutableMap.of("id", relationship.getId()),
                     null));
         }
     }

@@ -6,6 +6,7 @@
  */
 package com.albertoventurini.graphdbplugin.jetbrains.ui.console.graph;
 
+import com.albertoventurini.graphdbplugin.jetbrains.actions.execute.CancelQueryEvent;
 import com.albertoventurini.graphdbplugin.jetbrains.actions.execute.ExecuteQueryEvent;
 import com.albertoventurini.graphdbplugin.jetbrains.actions.execute.ExecuteQueryPayload;
 import com.albertoventurini.graphdbplugin.jetbrains.actions.ui.console.CleanCanvasEvent;
@@ -50,6 +51,11 @@ public class GraphPanelInteractions {
         messageBus.connect()
                 .subscribe(ExecuteQueryEvent.EXECUTE_QUERY_TOPIC,
                         (ExecuteQueryEvent) queryExecutionService::executeQuery);
+
+        messageBus.connect()
+                .subscribe(CancelQueryEvent.CANCEL_QUERY_TOPIC,
+                        (CancelQueryEvent) queryExecutionService::cancelQuery);
+
         messageBus.connect()
                 .subscribe(CleanCanvasEvent.CLEAN_CANVAS_TOPIC, (CleanCanvasEvent) () -> {
                     visualization.stop();
@@ -93,6 +99,8 @@ public class GraphPanelInteractions {
     private void registerVisualisationEvents() {
         visualization.addNodeListener(EventType.CLICK, graphConsoleView.getGraphPanel()::showNodeData);
         visualization.addNodeListener(EventType.CLICK, graphConsoleView.getGraphPanel()::navigateToMethod);
+        visualization.addNodeListener(EventType.CLICK, graphConsoleView.getGraphPanel()::nodeAction);
+        visualization.addEdgeListener(EventType.CLICK, graphConsoleView.getGraphPanel()::edgeAction);
         visualization.addEdgeListener(EventType.CLICK, graphConsoleView.getGraphPanel()::showRelationshipData);
         visualization.addEdgeListener(EventType.CLICK, graphConsoleView.getGraphPanel()::navigateToInvocation);
         visualization.addNodeListener(EventType.HOVER_START, graphConsoleView.getGraphPanel()::showTooltip);

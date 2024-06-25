@@ -24,8 +24,10 @@ public class EntityActionGroup extends ActionGroup {
     public EntityActionGroup(DataSourceApi dataSourceApi, NoIdGraphEntity entity) {
         if (entity instanceof GraphNode) {
             actions = new AnAction[]{
+                    new CopyValueToClipboardAction("Copy classname", "", null, (GraphNode) entity, "CLASSNAME"),
+                    new CopyValueToClipboardAction("Copy method", "", null, (GraphNode) entity, "METHOD"),
+                    new CopyValueToClipboardAction("Copy name0", "", null, (GraphNode) entity, "NAME"),
                     new CopyToClipboardAction("Copy node", "", null, entity),
-                    new CopyValueToClipboardAction("Copy value", "", null, (GraphNode) entity),
                     new NodeEditAction("Edit node", "", null, dataSourceApi, (GraphNode) entity),
                     new NodeDeleteAction("Delete node", "", null, dataSourceApi, (GraphNode) entity),
             };
