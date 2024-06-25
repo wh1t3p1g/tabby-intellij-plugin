@@ -18,6 +18,7 @@ import com.albertoventurini.graphdbplugin.jetbrains.ui.console.event.QueryExecut
 import com.albertoventurini.graphdbplugin.jetbrains.ui.datasource.tree.TreeMouseAdapter;
 import com.albertoventurini.graphdbplugin.jetbrains.ui.helpers.UiHelper;
 import com.albertoventurini.graphdbplugin.jetbrains.ui.renderes.tree.PropertyTreeCellRenderer;
+import com.albertoventurini.graphdbplugin.jetbrains.util.Notifier;
 import com.albertoventurini.graphdbplugin.platform.GraphConstants.ToolWindow.Tabs;
 import com.albertoventurini.graphdbplugin.visualization.PrefuseVisualization;
 import com.albertoventurini.graphdbplugin.visualization.services.LookAndFeelService;
@@ -189,6 +190,8 @@ public class GraphPanel {
                         }
 
                     }
+                }else{
+                    Notifier.error("Navigate", "file or method not found on this project.");
                 }
             }
         }

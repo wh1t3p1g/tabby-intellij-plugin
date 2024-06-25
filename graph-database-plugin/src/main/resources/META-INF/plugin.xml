@@ -2,7 +2,7 @@
     <id>tabby.graphdbplugin</id>
     <name>Tabby Plugin</name>
     <!-- Version is automatically replaced by the patchPluginXml task -->
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <vendor email="wh1t3p1g@gmail.com" url="https://github.com/wh1t3p1g/tabby-intellij-plugin">wh1t3p1g</vendor>
 
     <description><![CDATA[
