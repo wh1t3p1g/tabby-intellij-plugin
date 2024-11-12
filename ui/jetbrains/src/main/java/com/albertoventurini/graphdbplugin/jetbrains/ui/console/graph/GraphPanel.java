@@ -33,6 +33,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.ListPopup;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.source.tree.java.PsiMethodCallExpressionImpl;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.ColorUtil;
@@ -48,7 +49,6 @@ import com.intellij.util.messages.MessageBus;
 import org.jetbrains.annotations.NotNull;
 import prefuse.visual.VisualItem;
 
-import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
@@ -252,10 +252,11 @@ public class GraphPanel {
                         PsiMethod startMethod = NavigateFactory.getMethod(project, startNode);
                         PsiCallExpression callExpression = NavigateFactory.getFirstCallExpression(startMethod, endNode);
                         if(callExpression != null){
-                            VirtualFile virtualFile = startMethod.getContainingFile().getVirtualFile();
-                            UsageInfo usage = new UsageInfo(callExpression);
-                            SelectInEditorManager.getInstance(this.project)
-                                    .selectInEditor(virtualFile, usage.getSegment().getStartOffset(), usage.getSegment().getEndOffset(), true, false);
+                            ((PsiMethodCallExpressionImpl) callExpression).navigate(true);
+//                            UsageInfo usage = new UsageInfo(callExpression);
+//                            VirtualFile virtualFile = startMethod.getContainingFile().getVirtualFile();
+//                            SelectInEditorManager.getInstance(this.project)
+//                                        .selectInEditor(virtualFile, usage.getSegment().getStartOffset(), usage.getSegment().getEndOffset(), true, true);
                         }
                     }
                 }catch (Exception ee){

@@ -23,6 +23,11 @@ public class NavigateFactory {
             String signature = (String) node.getPropertyContainer().getProperties().get("SIGNATURE");
             JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
             PsiClass psiClass = facade.findClass(classname, GlobalSearchScope.allScope(project));
+            if(psiClass == null && classname.contains("$")){
+                classname = classname.replace("$", ".");
+                psiClass = facade.findClass(classname, GlobalSearchScope.allScope(project));
+            }
+
             if (psiClass != null) {
                 String[] types = getParameterTypes(signature);
                 String shortClassname = classname.substring(classname.lastIndexOf(".")+1);
@@ -58,8 +63,7 @@ public class NavigateFactory {
 
     private static PsiCallExpression getFirstCallExpression(PsiMethod startMethod, String identity) {
         UsageInfo usage = new UsageInfo(startMethod);
-        PsiMethod psiMethod = PsiTreeUtil.getParentOfType(usage.getFile().findElementAt(usage.getSegment().getEndOffset()), PsiMethod.class);
-        Collection<PsiCallExpression> callExpressions = PsiTreeUtil.collectElementsOfType(psiMethod, PsiCallExpression.class);
+        Collection<PsiCallExpression> callExpressions = PsiTreeUtil.collectElementsOfType(usage.getElement(), PsiCallExpression.class);
         for(PsiCallExpression callExpression:callExpressions){
             if(callExpression.toString().contains(identity)){
                 return callExpression;
@@ -102,6 +106,7 @@ public class NavigateFactory {
         if("java.lang.Object".equals(type)) return true;
 
         String psiTypeText = psiType.getCanonicalText();
+        type = type.replace("$", ".");
         if(psiTypeText.endsWith("...") && type.endsWith("[]")){
             String realType = psiTypeText.replace("...", "");
             String curRealType = type.replace("[]", "");
